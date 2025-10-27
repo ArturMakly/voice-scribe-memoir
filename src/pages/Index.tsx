@@ -39,9 +39,15 @@ const Index = () => {
   };
 
   const handleTranscript = async (text: string, speaker: 'user' | 'assistant') => {
-    setTranscript(prev => [...prev, { speaker, text }]);
+    // Build the updated transcript with the new entry
+    const updatedTranscript = [...transcript, { speaker, text }];
+    setTranscript(updatedTranscript);
 
-    if (!currentSessionId && speaker === 'user') {
+    let sessionId = currentSessionId;
+
+    // Create session on first user message
+    if (!sessionId && speaker === 'user') {
+      console.log('Creating new session...');
       const { data, error } = await supabase
         .from('memoir_sessions')
         .insert({ user_id: user!.id, title: 'New Session' })
@@ -49,6 +55,7 @@ const Index = () => {
         .single();
 
       if (error) {
+        console.error('Error creating session:', error);
         toast({
           title: "Error creating session",
           description: error.message,
@@ -57,17 +64,29 @@ const Index = () => {
         return;
       }
 
+      console.log('Session created:', data.id);
+      sessionId = data.id;
       setCurrentSessionId(data.id);
     }
 
-    if (currentSessionId && speaker === 'user') {
-      await supabase
+    // Save all transcripts (both user and assistant) to the session
+    if (sessionId) {
+      const transcriptText = updatedTranscript.map(t => `${t.speaker}: ${t.text}`).join('\n\n');
+      console.log(`Updating session ${sessionId} with transcript (${transcriptText.length} chars)`);
+      
+      const { error } = await supabase
         .from('memoir_sessions')
         .update({ 
-          transcript: transcript.map(t => `${t.speaker}: ${t.text}`).join('\n\n'),
+          transcript: transcriptText,
           updated_at: new Date().toISOString()
         })
-        .eq('id', currentSessionId);
+        .eq('id', sessionId);
+
+      if (error) {
+        console.error('Error updating session:', error);
+      } else {
+        console.log('Session transcript updated successfully');
+      }
     }
   };
 
