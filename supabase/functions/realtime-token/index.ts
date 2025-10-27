@@ -17,7 +17,20 @@ serve(async (req) => {
       throw new Error('OPENAI_API_KEY is not set');
     }
 
-    console.log('Requesting ephemeral token from OpenAI...');
+    // Get previous sessions context from request body
+    const { previousSessions } = await req.json().catch(() => ({ previousSessions: [] }));
+    
+    // Build context from previous sessions
+    let contextInstructions = '';
+    if (previousSessions && previousSessions.length > 0) {
+      contextInstructions = `\n\nPREVIOUS CONVERSATIONS:\nYou have already had ${previousSessions.length} conversation(s) with this person. Here's what they've shared:\n\n`;
+      previousSessions.forEach((session: any, index: number) => {
+        contextInstructions += `Session ${index + 1} (${new Date(session.started_at).toLocaleDateString()}):\n${session.transcript}\n\n`;
+      });
+      contextInstructions += `\nUse this context to ask deeper, more specific follow-up questions. Reference their previous stories naturally and help them expand on themes or time periods they've mentioned.`;
+    }
+
+    console.log(`Requesting ephemeral token with context from ${previousSessions?.length || 0} previous sessions...`);
 
     const response = await fetch("https://api.openai.com/v1/realtime/sessions", {
       method: "POST",
@@ -38,7 +51,7 @@ Your role:
 - Help them explore memories with gentle prompts
 - Occasionally summarize what they've shared to help structure their story
 
-Keep responses conversational and natural. Make them feel comfortable sharing their story.`
+Keep responses conversational and natural. Make them feel comfortable sharing their story.${contextInstructions}`
       }),
     });
 

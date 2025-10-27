@@ -51,10 +51,20 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ onSpeakingChange, onTra
         throw new Error('Not authenticated');
       }
       
+      // Fetch all previous completed sessions to provide context
+      const { data: previousSessions } = await supabase
+        .from('memoir_sessions')
+        .select('started_at, transcript')
+        .eq('user_id', session.user.id)
+        .eq('status', 'completed')
+        .order('started_at', { ascending: true });
+      
+      console.log(`Loading ${previousSessions?.length || 0} previous sessions into AI memory`);
+      
       const tokenUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/realtime-token`;
       
       chatRef.current = new RealtimeChat(handleMessage);
-      await chatRef.current.init(tokenUrl, session.access_token);
+      await chatRef.current.init(tokenUrl, session.access_token, previousSessions || []);
       setIsConnected(true);
       
       toast({

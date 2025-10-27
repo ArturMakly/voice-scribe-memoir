@@ -69,12 +69,15 @@ export class RealtimeChat {
     this.audioEl.autoplay = true;
   }
 
-  async init(tokenUrl: string, accessToken: string) {
+  async init(tokenUrl: string, accessToken: string, previousSessions?: any[]) {
     try {
       const tokenResponse = await fetch(tokenUrl, {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ previousSessions }),
       });
       const data = await tokenResponse.json();
       
