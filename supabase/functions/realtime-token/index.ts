@@ -30,7 +30,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: "gpt-realtime",
-        voice: "Alloy",
+        voice: "alloy",
         input_audio_transcription: {
           model: "whisper-1"
         },
