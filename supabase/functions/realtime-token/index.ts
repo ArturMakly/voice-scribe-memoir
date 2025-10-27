@@ -17,20 +17,10 @@ serve(async (req) => {
       throw new Error('OPENAI_API_KEY is not set');
     }
 
-    // Get previous sessions context from request body
+    // We pass previous sessions back to the client so it can inject them as conversation items
     const { previousSessions } = await req.json().catch(() => ({ previousSessions: [] }));
     
-    // Build context from previous sessions
-    let contextInstructions = '';
-    if (previousSessions && previousSessions.length > 0) {
-      contextInstructions = `\n\nPREVIOUS CONVERSATIONS:\nYou have already had ${previousSessions.length} conversation(s) with this person. Here's what they've shared:\n\n`;
-      previousSessions.forEach((session: any, index: number) => {
-        contextInstructions += `Session ${index + 1} (${new Date(session.started_at).toLocaleDateString()}):\n${session.transcript}\n\n`;
-      });
-      contextInstructions += `\nUse this context to ask deeper, more specific follow-up questions. Reference their previous stories naturally and help them expand on themes or time periods they've mentioned.`;
-    }
-
-    console.log(`Requesting ephemeral token with context from ${previousSessions?.length || 0} previous sessions...`);
+    console.log(`Requesting ephemeral token for session (${previousSessions?.length || 0} previous sessions will be loaded by client)...`);
 
     const response = await fetch("https://api.openai.com/v1/realtime/sessions", {
       method: "POST",
@@ -52,9 +42,11 @@ Your role:
 - Guide them through different life chapters: childhood, family, career, relationships, challenges, achievements
 - Be warm, empathetic, and encouraging
 - Help them explore memories with gentle prompts
-- Occasionally summarize what they've shared to help structure their story
+- Reference things they've shared in previous sessions naturally
+- Build on themes and stories they've mentioned before
+- Help them expand and add detail to previous memories
 
-Keep responses conversational and natural. Make them feel comfortable sharing their story.${contextInstructions}`
+Keep responses conversational and natural. Make them feel comfortable sharing their story.`
       }),
     });
 
