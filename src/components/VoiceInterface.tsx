@@ -21,6 +21,11 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ onSpeakingChange, onTra
   const handleMessage = (event: any) => {
     console.log('Received event:', event.type);
     
+    // Log all conversation.item events with full details
+    if (event.type?.startsWith('conversation.item')) {
+      console.log('Conversation item event:', event);
+    }
+    
     if (event.type === 'response.audio.delta') {
       setIsSpeaking(true);
       onSpeakingChange(true);
@@ -28,9 +33,19 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ onSpeakingChange, onTra
       setIsSpeaking(false);
       onSpeakingChange(false);
     } else if (event.type === 'conversation.item.input_audio_transcription.completed') {
+      console.log('User transcription completed:', event.transcript);
       const userText = event.transcript;
       if (userText) {
         onTranscript(userText, 'user');
+      }
+    } else if (event.type === 'conversation.item.created' && event.item?.type === 'message') {
+      // Check if this conversation item has user audio transcription
+      if (event.item.role === 'user' && event.item.content) {
+        const audioContent = event.item.content.find((c: any) => c.type === 'input_audio');
+        if (audioContent?.transcript) {
+          console.log('User transcription in item.created:', audioContent.transcript);
+          onTranscript(audioContent.transcript, 'user');
+        }
       }
     } else if (event.type === 'response.audio_transcript.delta') {
       transcriptBufferRef.current.assistant += event.delta;
