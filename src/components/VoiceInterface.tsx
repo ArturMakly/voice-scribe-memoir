@@ -146,7 +146,7 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ onSpeakingChange, onTra
             className="h-12 px-6"
           >
             <MicOff className="mr-2 h-4 w-4" />
-            End Session
+            Stop Recording
           </Button>
         </div>
       )}
