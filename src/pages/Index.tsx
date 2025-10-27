@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ const Index = () => {
   const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const sessionIdRef = useRef<string | null>(null);
   const [transcript, setTranscript] = useState<Array<{ speaker: string; text: string }>>([]);
   const [isSpeaking, setIsSpeaking] = useState(false);
 
@@ -43,9 +44,9 @@ const Index = () => {
     const updatedTranscript = [...transcript, { speaker, text }];
     setTranscript(updatedTranscript);
 
-    let sessionId = currentSessionId;
+    let sessionId = sessionIdRef.current;
 
-    // Create session on first user message
+    // Create session on first user message (use ref to prevent race conditions)
     if (!sessionId && speaker === 'user') {
       console.log('Creating new session...');
       const { data, error } = await supabase
@@ -66,6 +67,7 @@ const Index = () => {
 
       console.log('Session created:', data.id);
       sessionId = data.id;
+      sessionIdRef.current = data.id;
       setCurrentSessionId(data.id);
     }
 
@@ -138,6 +140,7 @@ const Index = () => {
         description: "Your memoir has been saved.",
       });
 
+      sessionIdRef.current = null;
       setCurrentSessionId(null);
       setTranscript([]);
     } catch (error: any) {
