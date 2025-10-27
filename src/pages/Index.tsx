@@ -40,10 +40,6 @@ const Index = () => {
   };
 
   const handleTranscript = async (text: string, speaker: 'user' | 'assistant') => {
-    // Build the updated transcript with the new entry
-    const updatedTranscript = [...transcript, { speaker, text }];
-    setTranscript(updatedTranscript);
-
     let sessionId = sessionIdRef.current;
 
     // Create session on first user message (use ref to prevent race conditions)
@@ -71,25 +67,33 @@ const Index = () => {
       setCurrentSessionId(data.id);
     }
 
-    // Save all transcripts (both user and assistant) to the session
-    if (sessionId) {
-      const transcriptText = updatedTranscript.map(t => `${t.speaker}: ${t.text}`).join('\n\n');
-      console.log(`Updating session ${sessionId} with transcript (${transcriptText.length} chars)`);
+    // Use functional setState to ensure we work with the latest state
+    setTranscript(prevTranscript => {
+      const updatedTranscript = [...prevTranscript, { speaker, text }];
       
-      const { error } = await supabase
-        .from('memoir_sessions')
-        .update({ 
-          transcript: transcriptText,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', sessionId);
-
-      if (error) {
-        console.error('Error updating session:', error);
-      } else {
-        console.log('Session transcript updated successfully');
+      // Save to database if we have a session (async operation outside of setState)
+      if (sessionId) {
+        const transcriptText = updatedTranscript.map(t => `${t.speaker}: ${t.text}`).join('\n\n');
+        console.log(`Updating session ${sessionId} with transcript (${transcriptText.length} chars)`);
+        
+        supabase
+          .from('memoir_sessions')
+          .update({ 
+            transcript: transcriptText,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', sessionId)
+          .then(({ error }) => {
+            if (error) {
+              console.error('Error updating session:', error);
+            } else {
+              console.log('Session transcript updated successfully');
+            }
+          });
       }
-    }
+      
+      return updatedTranscript;
+    });
   };
 
   const endSession = async () => {
