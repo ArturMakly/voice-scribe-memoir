@@ -41,6 +41,9 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "gpt-4o-realtime-preview-2024-12-17",
         voice: "sage",
+        input_audio_transcription: {
+          model: "whisper-1"
+        },
         instructions: `You are a compassionate memoir guide helping someone tell their life story. 
 
 Your role:
