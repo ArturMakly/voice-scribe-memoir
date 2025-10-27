@@ -100,57 +100,70 @@ export class RealtimeChat {
 
       this.dc = this.pc.createDataChannel("oai-events");
       
+      let sessionCreated = false;
+      
       this.dc.addEventListener("open", () => {
-        console.log("Data channel opened, loading conversation history...");
-        
-        // Enable input audio transcription
-        this.dc?.send(JSON.stringify({
-          type: "session.update",
-          session: {
-            input_audio_transcription: {
-              model: "whisper-1"
-            }
-          }
-        }));
-        
-        // Inject previous sessions as actual conversation items
-        if (previousSessions && previousSessions.length > 0) {
-          console.log(`Injecting ${previousSessions.length} previous sessions into conversation history...`);
-          
-          previousSessions.forEach((session, index) => {
-            if (session.transcript) {
-              // Parse the transcript to extract individual messages
-              const lines = session.transcript.split('\n\n');
-              lines.forEach((line: string) => {
-                const match = line.match(/^(user|assistant): (.+)$/s);
-                if (match) {
-                  const [, role, content] = match;
-                  
-                  // Create a conversation item for each message
-                  this.dc?.send(JSON.stringify({
-                    type: "conversation.item.create",
-                    item: {
-                      type: "message",
-                      role: role,
-                      content: [
-                        {
-                          type: "input_text",
-                          text: content
-                        }
-                      ]
-                    }
-                  }));
-                }
-              });
-            }
-          });
-          
-          console.log("Conversation history loaded successfully");
-        }
+        console.log("Data channel opened, waiting for session.created...");
       });
+      
+      const injectHistory = () => {
+        if (!sessionCreated || !previousSessions || previousSessions.length === 0) return;
+        
+        console.log(`Injecting ${previousSessions.length} previous sessions into conversation history...`);
+        
+        previousSessions.forEach((session) => {
+          if (session.transcript) {
+            // Parse the transcript to extract individual messages
+            const lines = session.transcript.split('\n\n');
+            lines.forEach((line: string) => {
+              const match = line.match(/^(user|assistant): (.+)$/s);
+              if (match) {
+                const [, role, content] = match;
+                
+                // Create a conversation item for each message
+                this.dc?.send(JSON.stringify({
+                  type: "conversation.item.create",
+                  item: {
+                    type: "message",
+                    role: role,
+                    content: [
+                      {
+                        type: "input_text",
+                        text: content
+                      }
+                    ]
+                  }
+                }));
+              }
+            });
+          }
+        });
+        
+        console.log("Conversation history injected successfully");
+      };
       
       this.dc.addEventListener("message", (e) => {
         const event = JSON.parse(e.data);
+        
+        // Wait for session.created before injecting history
+        if (event.type === "session.created") {
+          console.log("Session created, now enabling transcription and injecting history...");
+          sessionCreated = true;
+          
+          // Enable input audio transcription
+          this.dc?.send(JSON.stringify({
+            type: "session.update",
+            session: {
+              input_audio_transcription: {
+                model: "whisper-1"
+              }
+            }
+          }));
+          
+          // Inject conversation history after session is created
+          injectHistory();
+        }
+        
         this.onMessage(event);
       });
 
