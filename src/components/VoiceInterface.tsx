@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { RealtimeChat } from '@/utils/RealtimeAudio';
+import { supabase } from '@/integrations/supabase/client';
 import { Mic, MicOff, Loader2 } from 'lucide-react';
 
 interface VoiceInterfaceProps {
@@ -45,10 +46,15 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ onSpeakingChange, onTra
   const startConversation = async () => {
     try {
       setIsLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Not authenticated');
+      }
+      
       const tokenUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/realtime-token`;
       
       chatRef.current = new RealtimeChat(handleMessage);
-      await chatRef.current.init(tokenUrl);
+      await chatRef.current.init(tokenUrl, session.access_token);
       setIsConnected(true);
       
       toast({

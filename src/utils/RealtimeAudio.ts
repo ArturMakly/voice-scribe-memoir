@@ -69,9 +69,13 @@ export class RealtimeChat {
     this.audioEl.autoplay = true;
   }
 
-  async init(tokenUrl: string) {
+  async init(tokenUrl: string, accessToken: string) {
     try {
-      const tokenResponse = await fetch(tokenUrl);
+      const tokenResponse = await fetch(tokenUrl, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
       const data = await tokenResponse.json();
       
       if (!data.client_secret?.value) {
