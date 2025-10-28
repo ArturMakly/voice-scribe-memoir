@@ -118,7 +118,7 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ onSpeakingChange, onTra
           onClick={startConversation}
           disabled={isLoading}
           size="lg"
-          className="memoir-gradient hover:opacity-90 transition-smooth text-primary-foreground shadow-lg h-14 px-8"
+          className="bg-brown hover:bg-brown/90 transition-smooth text-brown-foreground shadow-lg h-14 px-8"
         >
           {isLoading ? (
             <>
