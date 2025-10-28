@@ -8,9 +8,10 @@ import { Mic, MicOff, Loader2 } from 'lucide-react';
 interface VoiceInterfaceProps {
   onSpeakingChange: (speaking: boolean) => void;
   onTranscript: (text: string, speaker: 'user' | 'assistant') => void;
+  onEndSession: () => Promise<void>;
 }
 
-const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ onSpeakingChange, onTranscript }) => {
+const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ onSpeakingChange, onTranscript, onEndSession }) => {
   const { toast } = useToast();
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -98,11 +99,32 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ onSpeakingChange, onTra
     }
   };
 
-  const endConversation = () => {
-    chatRef.current?.disconnect();
-    setIsConnected(false);
-    setIsSpeaking(false);
-    onSpeakingChange(false);
+  const endConversation = async () => {
+    try {
+      setIsLoading(true);
+      // Save session first
+      await onEndSession();
+      
+      // Then disconnect
+      chatRef.current?.disconnect();
+      setIsConnected(false);
+      setIsSpeaking(false);
+      onSpeakingChange(false);
+      
+      toast({
+        title: "Session saved",
+        description: "Your memoir has been saved successfully.",
+      });
+    } catch (error) {
+      console.error('Error ending session:', error);
+      toast({
+        title: "Error saving session",
+        description: error instanceof Error ? error.message : 'Failed to save session',
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -141,12 +163,22 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({ onSpeakingChange, onTra
           </div>
           <Button 
             onClick={endConversation}
+            disabled={isLoading}
             variant="outline"
             size="lg"
             className="h-12 px-6"
           >
-            <MicOff className="mr-2 h-4 w-4" />
-            Stop Recording
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <MicOff className="mr-2 h-4 w-4" />
+                Stop & Save
+              </>
+            )}
           </Button>
         </div>
       )}

@@ -194,16 +194,8 @@ const Index = () => {
             <VoiceInterface
               onSpeakingChange={setIsSpeaking}
               onTranscript={handleTranscript}
+              onEndSession={endSession}
             />
-            {currentSessionId && (
-              <Button
-                variant="outline"
-                onClick={endSession}
-                className="mt-6"
-              >
-                Save & End Session
-              </Button>
-            )}
           </CardContent>
         </Card>
 
