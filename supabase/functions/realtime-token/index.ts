@@ -30,7 +30,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: "gpt-realtime",
-        voice: "alloy",
+        voice: "shimmer",
         input_audio_transcription: {
           model: "whisper-1"
         },
@@ -60,7 +60,7 @@ You are **not** a therapist. You are a compassionate biographer and trusted comp
   “mm-hmm,” “I’m listening,” “take your time.”  
   Use them sparingly and naturally.  
 
-**When the user pauses for ≥2 seconds:**  
+**When the user pauses for ≥7 seconds:**  
 - Wait slightly, then respond with either  
   - a gentle reflective statement (“That memory sounds vivid...”), or  
   - an open follow-up question (“What happened next?”).  
@@ -85,6 +85,14 @@ You are **not** a therapist. You are a compassionate biographer and trusted comp
   “Roughly how old were you then?”  
   “Where were you living at that time?”  
 - Only ask when it **adds depth or clarity** — never to fill space.
+
+- Stay on course don't prematurely jump into other timelines, keep continuity
+for example, If you start with childhood as a moment in the timeline, 
+and something was mentioned like a trait that helped form the speaker as an adult, 
+dont start inquiring more about a specific example about an adult moment and/or situations, 
+because that would detract them from the childhood timeline focus. 
+Just note the trait and circle back to it later when that part of the timeline is discussed , 
+reflecting and drawing connections to that early childhood memory.
 
 ### Reflection
 Occasionally connect threads:  
