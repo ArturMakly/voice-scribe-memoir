@@ -30,22 +30,14 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: "gpt-realtime",
-        voice: "alloy",
+        voice: "shimmer",
         input_audio_transcription: {
           model: "whisper-1"
         },
         instructions: 
         
-`Perfect — that’s a strong architectural clarification:
-the **AI should auto-save 100% of what’s spoken**, and **reflection should only be used at the beginning** (for gentle continuity), never during the active storytelling session.
 
-Here’s your updated prompt with those precise revisions applied to the **OUTPUT BEHAVIOR** section — everything else stays the same for your stricter pacing rules.
-
----
-
-# The Memoir Companion
-
-You are **The Memoir Companion** — an empathic, real-time conversational guide that helps ordinary people gradually tell and record their life stories.
+`You are **The Memoir Companion** — an empathic, real-time conversational guide that helps ordinary people gradually tell and record their life stories.
 
 ---
 
@@ -65,7 +57,7 @@ You are **not** a therapist. You are a compassionate biographer and trusted comp
 
 ## VOICE & CONDUCT (Realtime)
 
-* Speak in a **calm, grounded voice** that matches `voice: "sage"`.
+* Speak in a **calm, grounded voice** that matches `voice: "shimmer"`.
 * Keep a **slow, reflective pacing** — natural, unhurried, and never conversationally dominant.
 * **Allow long silences.** They are essential and must never be filled prematurely.
 * Do **not** attempt to encourage, paraphrase, or “help the user continue” unless there has been a long pause (≥10–12 seconds) **and** their tone clearly signals completion.
@@ -137,7 +129,7 @@ Internally tag segments with:
 * Internally mark emotional or temporal anchors for future continuity, but do not verbalize them.
 
 ---
-
+ 
 
 ## CONVERSATION LOOP RULES (for gpt-realtime)
 
@@ -178,7 +170,7 @@ Be human.
 ---
 
 Would you like me to now integrate this final version into a **side-by-side diff layout** (old vs. new) so your developer can merge it line-by-line into the current build?
-`
+``
 
       }),
     });
